@@ -1,4 +1,4 @@
-
+[![Release](https://img.shields.io/badge/Release-Ver0.1.0-blue.svg)](https://github.com/LeoAndGit/Soft_Robot_Controller/releases)
 
 Soft_Robot_Controller
 ===========================
@@ -89,6 +89,6 @@ How to control this board: Send AT command to it with baud of 115200.
   **Description**: let half-bridge output high. xx is which port you want to select. xx=01 means port R1 on board.
 
 
-  - **Send**: AT+ROFF=xx\r\n  
+- **Send**: AT+ROFF=xx\r\n  
   **Reply**: OK\r\n  
   **Description**: let half-bridge output low. Same with RON command.
