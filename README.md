@@ -14,7 +14,7 @@ Control board
 ---------------------------
 This board is a four layer PCB. It needs both USB (for 3.3V power) and a 24V power adapter(GST60A24-P1J).
 
-Use this board is really simple. Built in CH340 USB to serial converter makes it possible to program your STM controller without any other device. To uplode new program, just change the switch on left side to BOOT mode and use serial in Arduino IDE. Or just use AT command to control it.
+Use this board is really simple. Built in CH340 USB to serial converter makes it possible to program your STM controller without any other device. To upload new program, just change the switch on left side to BOOT mode and use serial in Arduino IDE. Or just use AT commands to control it.
 
 ***************************
 
@@ -40,14 +40,15 @@ You will still need this PCA9555 library modified by myself: https://github.com/
 
 ***************************
 
-V0.10 code feature:
+V0.1.0 code feature:
 - Support control every independent half-bridge output
 - Support 2 channels of analog output
 - Support multiple boards working together by different addresses
+- Not support pressure sensors yet
 
 A red LED shows 3.3V logic power is online and a green LED tells you this MCU is working now. 
 
-How to control this board: Send AT command to it with baud of 115200. 
+How to control this board: send AT commands to it with baud of 115200. 
 
 - **Send**: AT\r\n  
   **Reply**: OK\r\n  
@@ -61,7 +62,7 @@ How to control this board: Send AT command to it with baud of 115200.
 
 - **Send**: AT+ADDRESS\r\n  
   **Reply**: ADDRESS\r\n OK\r\n  
-  **Description**: get address 
+  **Description**: get address. This means when you connect this board to your PC, you can know which board is talking to.
 
 
 - **Send**: AT+RESET\r\n  
