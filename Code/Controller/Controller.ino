@@ -1,6 +1,6 @@
 
 /* AT Control Board for Soft Robots
-Version: 0.10
+Version: 1.00
 For: SoftRobotController-01
 Author: Leo
 Copyright 2019, github/LeoAndGit>
@@ -13,6 +13,7 @@ https://github.com/hellange/AD5761/blob/master/AD5761.ino
 
 // Change X to the address you want
 #define BOARD_ADDRESS "X"
+#define BOARD_VERSION "V1.00"
 
 // Define pins of MCU
 #define LED0 PB0
@@ -73,6 +74,7 @@ PCA9555 ioport_2 (0x21); // for driver
 String inputString = "";         // a string to hold incoming data
 int DAC1_Value = 0;
 int DAC2_Value = 0;
+byte ABP_data[2]; // ABP pressure sensor data buffer
 
 void setup() {
   afio_cfg_debug_ports(AFIO_DEBUG_NONE);// Stop the debug function
@@ -94,13 +96,13 @@ void setup() {
     ioport_2.pinMode(i, OUTPUT);
   }
 
-  // Set DAC ss pin
-  ioport_1.digitalWrite(DAC1, HIGH);  // Set the SS pin HIGH
-  ioport_1.digitalWrite(DAC2, HIGH);  // Set the SS pin HIGH
+  // Set DAC & sensor ss pin to high
+  for (uint8_t i = 0; i < 14; i++){
+    ioport_1.digitalWrite(i, HIGH);
+  }
 
   SPI.begin();  // Begin SPI hardware
-  // SPI.setClockDivider(SPI_CLOCK_DIV64);  // Slow down SPI clock
-  SPI.setDataMode(SPI_MODE2);
+  SPI.setClockDivider(SPI_CLOCK_DIV64);  // Slow down SPI clock
   
   // DAC Software reset
   ad5761r_write(CMD_SW_FULL_RESET, 0, DAC1);
@@ -203,8 +205,8 @@ if (Serial.available() > 0) {
       // Turn on driver
       //
       else if(inputString.substring(0,7)=="AT+RON="){
-        String strDAC2_Value =  inputString.substring(7,9);
-        switch (strDAC2_Value.toInt()) {
+        String channel =  inputString.substring(7,9);
+        switch (channel.toInt()){
           case 1:
             ioport_2.digitalWrite(R01, HIGH);
             break;
@@ -243,6 +245,7 @@ if (Serial.available() > 0) {
             break;
           default:
             // statements
+            Serial.println("Error channel");
             break;
         }
         Serial.println("OK");
@@ -251,8 +254,8 @@ if (Serial.available() > 0) {
       // Turn off driver
       //
       else if(inputString.substring(0,8)=="AT+ROFF="){
-        String strDAC2_Value =  inputString.substring(8,10);
-        switch (strDAC2_Value.toInt()) {
+        String channel =  inputString.substring(8,10);
+        switch (channel.toInt()){
           case 1:
             ioport_2.digitalWrite(R01, LOW);
             break;
@@ -290,16 +293,73 @@ if (Serial.available() > 0) {
             ioport_2.digitalWrite(R12, LOW);
             break;
           default:
+            Serial.println("Error channel");
             // statements
             break;
         }
         Serial.println("OK");
       }
       //
+      // Real data from ABP pressure sensor
+      //
+      else if(inputString.substring(0,9)=="AT+PREAD="){
+        String channel =  inputString.substring(9,11);
+        switch (channel.toInt()){
+          case 1:
+            ABP_read(S01);
+            break;
+          case 2:
+            ABP_read(S02);
+            break;
+          case 3:
+            ABP_read(S03);
+            break;
+          case 4:
+            ABP_read(S04);
+            break;
+          case 5:
+            ABP_read(S05);
+            break;
+          case 6:
+            ABP_read(S06);
+            break;
+          case 7:
+            ABP_read(S07);
+            break;
+          case 8:
+            ABP_read(S08);
+            break;
+          case 9:
+            ABP_read(S09);
+            break;
+          case 10:
+            ABP_read(S10);
+            break;
+          case 11:
+            ABP_read(S11);
+            break;
+          case 12:
+            ABP_read(S12);
+            break;
+          default:
+            Serial.println("Error channel");
+            // statements
+            break;
+        }
+        for (int i=0; i<2; i++){
+          char format[2];
+          sprintf(format, "%02X", ABP_data[i]);
+          Serial.print(format);
+        }
+        Serial.println();
+        Serial.println("OK");
+      }
+      //
       // Get board version
       //
       else if(inputString=="AT+VERSION\r"){
-        Serial.println("AT Control Board for Soft Robots V0.10");
+        Serial.print("AT Control Board for Soft Robots ");
+        Serial.println(BOARD_VERSION);
         Serial.println("OK");
       } 
       //
@@ -328,10 +388,12 @@ void ad5761r_write(uint8_t reg_addr_cmd,
             uint16_t reg_data,
             uint8_t DACss)
 {
+  SPI.setDataMode(SPI_MODE2);
   uint8_t data[3];
-  delay(1);
+  //delay(1);
   ioport_1.digitalWrite(DACss, LOW);
-  delay(1);
+  //delay(1);
+  delayMicroseconds(100);
 
   data[0] = reg_addr_cmd;
   data[1] = (reg_data & 0xFF00) >> 8;
@@ -340,7 +402,26 @@ void ad5761r_write(uint8_t reg_addr_cmd,
   {
     SPI.transfer(data[i]);
   }
-  delay(1);
+  //delay(1);
   ioport_1.digitalWrite(DACss, HIGH);
-  delay(1);
+  //delay(1);
+  delayMicroseconds(100);
+}
+
+// This function is used to read ABP pressure sensor. 
+// It needs to select which sensor you want to read
+void ABP_read(uint8_t ABPss)
+{
+  SPI.setDataMode(SPI_MODE0);
+  ioport_1.digitalWrite(ABPss, LOW);
+  delayMicroseconds(100);
+
+  for (int i=0; i<2; i++)
+  {
+    ABP_data[i] = SPI.transfer(0);
+  }
+  //ABP_data_high = SPI.transfer(byte(0));
+  //ABP_data_low = SPI.transfer(byte(0));
+  ioport_1.digitalWrite(ABPss, HIGH);
+  delayMicroseconds(100);
 }

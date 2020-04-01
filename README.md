@@ -1,8 +1,8 @@
-[![Release](https://img.shields.io/badge/Release-Ver0.1.0-blue.svg)](https://github.com/LeoAndGit/Soft_Robot_Controller/releases)
+[![Release](https://img.shields.io/badge/Release-Ver1.0.0-blue.svg)](https://github.com/LeoAndGit/Soft_Robot_Controller/releases)
 
 Soft_Robot_Controller
 ===========================
-This a board for soft robots. It has 12 channels of 24V half-bridge output to control electromagnetic valves, 12 pressure sensors and 2 DACs to provide 0V-10V analog signals. 
+This is a board for soft robots. It has 12 channels of 24V half-bridge output to control electromagnetic valves, 12 pressure sensors (ABP series form Honeywell) and 2 DACs to provide 0V-10V analog signals. 
 
 ****
 Author: Leo
@@ -27,7 +27,7 @@ BUGs on SoftRobotController-01:
 - PCB 
 <img src="/Image/PCB01.png" width="450px" />
 
-- Photo of board (not finished yet)
+- Photo of board
 <img src="/Image/board01.jpg" width="450px" />
 
 Arduino code
@@ -39,6 +39,11 @@ Arduino STM32 library: https://github.com/rogerclarkmelbourne/Arduino_STM32
 You will still need this PCA9555 library modified by myself: https://github.com/LeoAndGit/PCA9555
 
 ***************************
+V1.0.0 code feature:
+- Support pressure sensor data reading
+- **Send**: AT+PREAD=XX\r\n  
+  **Reply**: YYYY\r\n OK\r\n  
+  **Description**: for testing. xx is which sensor you want to reading. xx=01 means S01 on board. YYYY is HEX data from pressure sensor. More information about the data can be found in technical note about SPI communication and datasheet from Honeywell.
 
 V0.1.0 code feature:
 - Support control every independent half-bridge output
