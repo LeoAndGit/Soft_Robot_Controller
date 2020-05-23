@@ -1,6 +1,6 @@
 
 /* AT Control Board for Soft Robots
-Version: 1.00
+Version: 1.10
 For: SoftRobotController-01
 Author: Leo
 Copyright 2019, github/LeoAndGit>
@@ -13,7 +13,10 @@ https://github.com/hellange/AD5761/blob/master/AD5761.ino
 
 // Change X to the address you want
 #define BOARD_ADDRESS "X"
-#define BOARD_VERSION "V1.00"
+#define BOARD_VERSION "V1.10"
+
+// Expansion board added
+#define Expansion01
 
 // Define pins of MCU
 #define LED0 PB0
@@ -49,6 +52,21 @@ https://github.com/hellange/AD5761/blob/master/AD5761.ino
 #define R10 8
 #define R11 7
 #define R12 6
+
+
+// Expansion board added
+#ifdef Expansion01
+  PCA9555 ioport_E (0x22); // for expansion board 01
+  #define E_S1 4
+  #define E_S2 5
+  #define E_S3 6
+  #define E_S4 7
+  #define E_R1 3
+  #define E_R2 2
+  #define E_R3 1
+  #define E_R4 0
+  #define E_DAC 8 //DAC not supported by program now
+#endif
 
 // Input Shift Register Commands of AD57X1
 #define CMD_NOP                 0x0
@@ -100,6 +118,21 @@ void setup() {
   for (uint8_t i = 0; i < 14; i++){
     ioport_1.digitalWrite(i, HIGH);
   }
+
+  // Expansion board added
+  #ifdef Expansion01
+    // Set (IO Expander 1) first 14 pins to output
+    for (uint8_t i = 0; i < 14; i++){
+      ioport_E.pinMode(i, OUTPUT);
+    }
+
+    // Set sensor ss pin to high
+    ioport_E.digitalWrite(E_S1, HIGH);
+    ioport_E.digitalWrite(E_S2, HIGH);
+    ioport_E.digitalWrite(E_S3, HIGH);
+    ioport_E.digitalWrite(E_S4, HIGH);
+    // Keep other pins default (low)
+  #endif
 
   SPI.begin();  // Begin SPI hardware
   SPI.setClockDivider(SPI_CLOCK_DIV64);  // Slow down SPI clock
@@ -243,6 +276,23 @@ if (Serial.available() > 0) {
           case 12:
             ioport_2.digitalWrite(R12, HIGH);
             break;
+
+          // Expansion board added
+          #ifdef Expansion01
+          case 13:
+            ioport_E.digitalWrite(E_R1, HIGH);
+            break;
+          case 14:
+            ioport_E.digitalWrite(E_R2, HIGH);
+            break;
+          case 15:
+            ioport_E.digitalWrite(E_R3, HIGH);
+            break;
+          case 16:
+            ioport_E.digitalWrite(E_R4, HIGH);
+            break;
+          #endif
+
           default:
             // statements
             Serial.println("Error channel");
@@ -292,6 +342,23 @@ if (Serial.available() > 0) {
           case 12:
             ioport_2.digitalWrite(R12, LOW);
             break;
+
+          // Expansion board added
+          #ifdef Expansion01
+            case 13:
+              ioport_E.digitalWrite(E_R1, LOW);
+              break;
+            case 14:
+              ioport_E.digitalWrite(E_R2, LOW);
+              break;
+            case 15:
+              ioport_E.digitalWrite(E_R3, LOW);
+              break;
+            case 16:
+              ioport_E.digitalWrite(E_R4, LOW);
+              break;
+          #endif
+
           default:
             Serial.println("Error channel");
             // statements
@@ -341,6 +408,23 @@ if (Serial.available() > 0) {
           case 12:
             ABP_read(S12);
             break;
+
+          // Expansion board added
+          #ifdef Expansion01
+            case 13:
+            ABP_read_E(E_S1);
+            break;
+            case 14:
+            ABP_read_E(E_S2);
+            break;
+            case 15:
+            ABP_read_E(E_S3);
+            break;
+            case 16:
+            ABP_read_E(E_S4);
+            break;
+          #endif
+
           default:
             Serial.println("Error channel");
             // statements
@@ -425,3 +509,24 @@ void ABP_read(uint8_t ABPss)
   ioport_1.digitalWrite(ABPss, HIGH);
   delayMicroseconds(100);
 }
+
+// Expansion board added
+#ifdef Expansion01
+
+    void ABP_read_E(uint8_t ABPss)
+  {
+    SPI.setDataMode(SPI_MODE0);
+    ioport_E.digitalWrite(ABPss, LOW);
+    delayMicroseconds(100);
+
+    for (int i=0; i<2; i++)
+    {
+      ABP_data[i] = SPI.transfer(0);
+    }
+    //ABP_data_high = SPI.transfer(byte(0));
+    //ABP_data_low = SPI.transfer(byte(0));
+    ioport_E.digitalWrite(ABPss, HIGH);
+    delayMicroseconds(100);
+  }
+
+#endif
